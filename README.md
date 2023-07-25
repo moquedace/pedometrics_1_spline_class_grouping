@@ -6,18 +6,14 @@ Authors: "Fernandes-Filho, Elpídio Inácio; Moquedace, Cássio Marques; Pereira
 ## Loading packages
 ```{r message=FALSE, warning=FALSE}
 pkg <- c("sf", "stringr", "geobr", "readxl", "dplyr", "mpspline2", "tidyr", "terra")
-
 sapply(pkg, require, character.only = T)
 ```
-
 
 ## Cleaning the environment (removing objects and previously loaded packages)
 ```{r}
 rm(list = ls())  
 gc()
 ```
-
-
 
 ## Loading the dataset
 ```{r message=FALSE, warning=FALSE}
@@ -33,8 +29,6 @@ coord_33 <- read_excel("./data/ctb0033.xlsx",
   dplyr::select(observacao_id, coord_x, coord_y)
 
 head(coord_33)
-
-
 
 df33 <- df33 %>% 
   left_join(coord_33, by = "observacao_id") %>% 
@@ -67,8 +61,6 @@ head(df_atr)
 ```{r message=FALSE, warning=FALSE}
 source("./scripts/s_fspline.R")
 
-
-
 l_spl <- spl(obj = df_atr,
              id = "observacao_id",
              upper_limit = "t_depht",
@@ -80,10 +72,8 @@ l_spl <- spl(obj = df_atr,
              vhigh = 1000) %>% 
   rename("ph_h2o_25_eletrodo" = "X000_020_cm")
 
-
 head(l_spl)
 ```
-
 
 ## Joining the coordinates and transforming them into spatial data
 ```{r message=FALSE, warning=FALSE}
@@ -116,20 +106,13 @@ vj <- st_read("./vect/ro_territorio.shp") %>%
   group_by(territr) %>% 
   summarize() %>% 
   filter(territr == "Vale do Jamari")
-```
 
-
-
-```{r message=FALSE, warning=FALSE}
 plot(st_geometry(vj))
 ```
-
 
 <p align="center">
 <img src="vale_jamari.jpg" width="600">
 </p>
-
-
 
 ```{r message=FALSE, warning=FALSE}
 atr_filter <- st_intersection(sf_spl, vj) %>% 
@@ -154,10 +137,8 @@ plot(st_geometry(atr_filter))
 st_write(atr_filter, dsn = "./vect/spline_ph_h2o.gpkg", append = F)
 ```
 
-
 ## Loading spatial data of soil classes
 ```{r message=FALSE, warning=FALSE}
-
 vars_y_sf <- st_read("./vect/clas_jamari.gpkg") %>% 
   rename(st_orig = ST_class,
          st_2ord = ST_2ordem,
@@ -186,18 +167,15 @@ v1 <- vars_y_sf %>% as.data.frame() %>%
 
 print(v1)
 
-
-
-
 for (i in seq_along(v1)) {
   
   vars_y_sf <- vars_y_sf %>% 
     mutate(st_orig = recode(st_orig,
-                            !!v1[i] := "other"))
-  
+                            !!v1[i] := "other"))  
 }
 
 par(mar = c(10, 5, 3, 3))
+
 vars_y_sf %>% as.data.frame() %>% 
   select(st_orig) %>% 
    table() %>% 
@@ -215,15 +193,13 @@ v2 <- vars_y_sf %>% as.data.frame() %>%
   filter(n == 1) %>% 
   select(1) %>% pull() %>% print()
 
-
 for (i in seq_along(v2)) {
   
   vars_y_sf <- vars_y_sf %>% 
     mutate(st_2ord = recode(st_2ord,
                             !!v2[i] := "other"))
-  
-}
 
+}
 
 vars_y_sf %>% as.data.frame() %>% 
   select(st_2ord) %>% 
@@ -247,14 +223,11 @@ vars_y_sf <- vars_y_sf %>%
   dplyr::select(st_2ord)
 ```
 
-
 ## Counting number of samples per class and saving the spatial data
 ```{r message=FALSE, warning=FALSE}
 vars_y_sf %>% as.data.frame() %>% 
   count(st_2ord) %>% 
   arrange(n) %>% print()
-
-
 
 vars_y_sf %>% as.data.frame() %>% 
   select(st_2ord) %>% 
